@@ -1,0 +1,6 @@
+{% extends "admin/change_list.html" %}
+
+{% block pagination %}
+  {{ block.super }}
+  <p class="paginator">Total amount: {{ cl.queryset.total_amounts_by_currency }}</p>
+{% endblock %}
