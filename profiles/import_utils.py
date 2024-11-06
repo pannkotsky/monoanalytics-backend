@@ -1,13 +1,14 @@
 from django.db import transaction
 
-from monoclient.client import get_client_info
+import monobank
 
 from .models import Account, Jar, Profile
 
 
 @transaction.atomic
 def import_profile(user_id: int, token: str):
-    client_info = get_client_info(token)
+    mono = monobank.Client(token)
+    client_info = mono.get_client_info()
     raw_data = client_info.copy()
     accounts_data = raw_data.pop("accounts")
     jars_data = raw_data.pop("jars")

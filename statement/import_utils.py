@@ -3,7 +3,7 @@ from datetime import datetime
 
 from django.utils import timezone
 
-from monoclient.client import get_statement
+import monobank
 
 from profiles.models import Account
 from .models import StatementItem
@@ -14,6 +14,8 @@ def import_statement(
     from_date: datetime | None = None,
     to_date: datetime | None = None,
 ):
+    mono = monobank.Client(account.profile.token)
+
     from_date = from_date or account.statement_last_updated
     if from_date is None:
         raise ValueError("from_date is required")
@@ -24,11 +26,8 @@ def import_statement(
         finish_date = min(start_date + timezone.timedelta(days=30), to_date)
         print(start_date.strftime("%Y-%m-%d"), finish_date.strftime("%Y-%m-%d"))
 
-        statement_items_data = get_statement(
-            account.profile.token,
-            account.mono_id,
-            str(int(start_date.timestamp())),
-            str(int(finish_date.timestamp())),
+        statement_items_data = mono.get_statements(
+            account.mono_id, start_date, finish_date
         )
 
         if "errorDescription" in statement_items_data:

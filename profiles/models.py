@@ -52,6 +52,7 @@ class Account(models.Model):
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name="accounts"
     )
+    is_active = models.BooleanField(default=True)
     balance = models.IntegerField()
     credit_limit = models.IntegerField()
     type = models.CharField(max_length=14, choices=AccountType.choices)

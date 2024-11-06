@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
@@ -16,7 +17,9 @@ class Command(BaseCommand):
         parser.add_argument("--to-date", type=str)
 
     def handle(self, *args, **options):
-        accounts = Account.objects.filter(profile__user_id=options["user_id"])
+        accounts = Account.objects.filter(
+            profile__user_id=options["user_id"], is_active=True
+        )
         from_date = options["from_date"] and timezone.make_aware(
             datetime.fromisoformat(options["from_date"])
         )
@@ -33,4 +36,8 @@ class Command(BaseCommand):
                 import_statement(account, from_date, to_date)
             except Exception as e:
                 self.stdout.write(self.style.ERROR(str(e)))
+
+            # Monobank API rate limit
+            if index < accounts.count():
+                time.sleep(60)
         self.stdout.write(self.style.SUCCESS("Statement imported"))

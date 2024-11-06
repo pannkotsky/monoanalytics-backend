@@ -19,13 +19,19 @@ class AccountAdmin(admin.ModelAdmin):
     list_display = (
         "mono_id",
         "profile",
+        "is_active",
         "type",
         "masked_pan",
         "balance_",
         "credit_limit_",
         "statement_last_updated",
     )
-    list_filter = ("type", AutocompleteFilterFactory(_("Profile"), "profile"))
+    list_editable = ("is_active",)
+    list_filter = (
+        "type",
+        "is_active",
+        AutocompleteFilterFactory(_("Profile"), "profile"),
+    )
     search_fields = ("masked_pan",)
     autocomplete_fields = ("profile",)
 
