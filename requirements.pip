@@ -9,8 +9,11 @@ Django==5.1.1
 django-admin-autocomplete-filter @ git+https://github.com/pannkotsky/django-admin-autocomplete-filter@168be85b5cb5b924171a937b4c623ec3de501d39
 django-admin-rangefilter==0.13.2
 executing==2.1.0
+factory_boy==3.3.1
+Faker==30.8.2
 flake8==7.1.1
 idna==3.8
+iniconfig==2.0.0
 ipython==8.27.0
 isort==5.13.2
 jedi==0.19.1
@@ -22,6 +25,7 @@ parso==0.8.4
 pathspec==0.12.1
 pexpect==4.9.0
 platformdirs==4.3.2
+pluggy==1.5.0
 prompt_toolkit==3.0.47
 psycopg==3.2.1
 ptyprocess==0.7.0
@@ -29,6 +33,9 @@ pure_eval==0.2.3
 pycodestyle==2.12.1
 pyflakes==3.2.0
 Pygments==2.18.0
+pytest==8.3.3
+pytest-django==4.9.0
+python-dateutil==2.9.0.post0
 requests==2.32.3
 six==1.16.0
 sqlparse==0.5.1
