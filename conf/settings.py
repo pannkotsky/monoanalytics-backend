@@ -10,11 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+import environ
+
+env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Take environment variables from .env file
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -74,20 +81,29 @@ TEMPLATES = [
 WSGI_APPLICATION = "conf.wsgi.application"
 
 
+# Internationalization
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
+
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Europe/Kyiv"
+USE_I18N = True
+USE_TZ = True
+
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+PGPASSWORD = env("PGPASSWORD", default="postgres")
+DATABASE_USER = env("DATABASE_USER", default="pannkotsky")
+DATABASE_HOST = env("DATABASE_HOST", default="localhost")
+DATABASE_PORT = env("DATABASE_PORT", default=5432, cast=int)
+DATABASE_NAME = env("DATABASE_NAME", default="monoanalytics")
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "monoanalytics",
-        "USER": "pannkotsky",
-        "PASSWORD": "postgres",
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
+    "default": env.db_url(
+        "DATABASE_URL",
+        default=f"postgres://{DATABASE_USER}:{PGPASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}",
+    )
 }
-
+DATABASES["default"]["TIME_ZONE"] = TIME_ZONE
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -106,18 +122,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "Europe/Kyiv"
-
-USE_I18N = True
-
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
