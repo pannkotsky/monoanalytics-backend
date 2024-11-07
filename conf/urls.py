@@ -16,8 +16,26 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+
+from rest_framework import routers
+
+from profiles.api import ProfileViewSet
+from users.api import UserView
+
+router = routers.DefaultRouter()
+router.register(r"profiles", ProfileViewSet)
+
+# Group all DRF-related URLs under /api/
+api_urlpatterns = [
+    path("dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")),
+    path("dj-rest-auth/", include("dj_rest_auth.urls")),
+    path("user/", UserView.as_view(), name="user"),
+    path("", include(router.urls)),
+]
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/", include((api_urlpatterns, "api"), namespace="api")),
 ]
