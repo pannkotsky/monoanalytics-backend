@@ -23,6 +23,7 @@ executing==2.1.0
 factory_boy==3.3.1
 Faker==30.8.2
 flake8==7.1.1
+gunicorn==23.0.0
 idna==3.8
 iniconfig==2.0.0
 ipython==8.27.0
@@ -62,3 +63,4 @@ traitlets==5.14.3
 typing_extensions==4.12.2
 urllib3==2.2.2
 wcwidth==0.2.13
+whitenoise==6.8.2
