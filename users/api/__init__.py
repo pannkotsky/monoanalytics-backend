@@ -3,7 +3,6 @@ from django.utils.translation import gettext_lazy as _
 from dj_rest_auth.registration.serializers import (
     RegisterSerializer as DjRestAuthRegisterSerializer,
 )
-from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
 
 from users.models import User

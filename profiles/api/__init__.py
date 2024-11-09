@@ -1,4 +1,6 @@
-from rest_framework import serializers, status, viewsets
+from drf_spectacular.utils import extend_schema
+from drf_standardized_errors.openapi_serializers import ErrorResponse429Serializer
+from rest_framework import exceptions, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -51,17 +53,28 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-last_updated", "-id")
         )
 
+    @extend_schema(
+        request=ProfileImportDataSerializer,
+        responses={
+            200: ProfileSerializer,
+            429: ErrorResponse429Serializer,
+        },
+    )
     @action(detail=False, methods=["post"], url_path="import", url_name="import")
     def import_(self, request):
         user = request.user
         serializer = ProfileImportDataSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
 
         try:
             profile = import_profile(user.id, serializer.validated_data["token"])
         except ImportError as e:
-            return Response({"non_field_errors": [str(e)]}, status=e.status_code)
+            detail = str(e)
+            if e.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+                raise exceptions.Throttled(detail=detail, wait=60)
+            if e.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR:
+                raise exceptions.ValidationError({"token": detail})
+            raise exceptions.APIException(detail)
 
         if not user.first_name and not user.last_name:
             last_name, first_name = profile.name.split(" ", 1)

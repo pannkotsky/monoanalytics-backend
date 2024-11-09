@@ -1610,7 +1610,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Profile'
+              $ref: '#/components/schemas/ProfileImportData'
+        required: true
       security:
       - cookieAuth: []
       - tokenAuth: []
@@ -1731,6 +1732,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Profile'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse429'
+              examples:
+                Throttled:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: throttled
+                      detail: Request was throttled.
+                      attr: null
           description: ''
 components:
   schemas:
@@ -3077,6 +3092,20 @@ components:
       - attr
       - code
       - detail
+    Error429:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode429Enum'
+        detail:
+          type: string
+        attr:
+          type: string
+          nullable: true
+      required:
+      - attr
+      - code
+      - detail
     Error500:
       type: object
       properties:
@@ -3124,6 +3153,11 @@ components:
       - unsupported_media_type
       type: string
       description: '* `unsupported_media_type` - Unsupported Media Type'
+    ErrorCode429Enum:
+      enum:
+      - throttled
+      type: string
+      description: '* `throttled` - Throttled'
     ErrorCode500Enum:
       enum:
       - error
@@ -3198,6 +3232,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Error415'
+      required:
+      - errors
+      - type
+    ErrorResponse429:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/ClientErrorEnum'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error429'
       required:
       - errors
       - type
@@ -3370,13 +3416,23 @@ components:
       - id
       - lastUpdated
       - name
+    ProfileImportData:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+      required:
+      - token
     ProfilesImportCreateError:
       oneOf:
       - $ref: '#/components/schemas/ProfilesImportCreateNonFieldErrorsErrorComponent'
+      - $ref: '#/components/schemas/ProfilesImportCreateTokenErrorComponent'
       discriminator:
         propertyName: attr
         mapping:
           nonFieldErrors: '#/components/schemas/ProfilesImportCreateNonFieldErrorsErrorComponent'
+          token: '#/components/schemas/ProfilesImportCreateTokenErrorComponent'
     ProfilesImportCreateErrorResponse400:
       oneOf:
       - $ref: '#/components/schemas/ProfilesImportCreateValidationError'
@@ -3402,6 +3458,36 @@ components:
           description: |-
             * `invalid` - invalid
             * `null` - null
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    ProfilesImportCreateTokenErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - token
+          type: string
+          description: '* `token` - token'
+        code:
+          enum:
+          - blank
+          - invalid
+          - 'null'
+          - null_characters_not_allowed
+          - required
+          - surrogate_characters_not_allowed
+          type: string
+          description: |-
+            * `blank` - blank
+            * `invalid` - invalid
+            * `null` - null
+            * `null_characters_not_allowed` - null_characters_not_allowed
+            * `required` - required
+            * `surrogate_characters_not_allowed` - surrogate_characters_not_allowed
         detail:
           type: string
       required:
