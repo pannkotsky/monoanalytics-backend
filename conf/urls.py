@@ -18,10 +18,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from profiles.api import ProfileViewSet
-from users.api import UserView
 
 router = routers.DefaultRouter()
 router.register(r"profiles", ProfileViewSet)
@@ -30,7 +30,12 @@ router.register(r"profiles", ProfileViewSet)
 api_urlpatterns = [
     path("dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")),
     path("dj-rest-auth/", include("dj_rest_auth.urls")),
-    path("user/", UserView.as_view(), name="user"),
+    path(
+        "schema/swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="api:schema"),
+        name="swagger-ui",
+    ),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("", include(router.urls)),
 ]
 
