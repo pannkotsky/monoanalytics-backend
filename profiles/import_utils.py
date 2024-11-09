@@ -5,10 +5,20 @@ import monobank
 from .models import Account, Jar, Profile
 
 
+class ImportError(Exception):
+    def __init__(self, message, status_code):
+        super().__init__(message)
+        self.status_code = status_code
+
+
 @transaction.atomic
 def import_profile(user_id: int, token: str):
     mono = monobank.Client(token)
-    client_info = mono.get_client_info()
+    try:
+        client_info = mono.get_client_info()
+    except monobank.Error as e:
+        raise ImportError(e.args[0], e.response.status_code) from e
+
     raw_data = client_info.copy()
     accounts_data = raw_data.pop("accounts")
     jars_data = raw_data.pop("jars")
@@ -54,3 +64,4 @@ def import_profile(user_id: int, token: str):
                 "raw_data": jar_data,
             },
         )
+    return profile

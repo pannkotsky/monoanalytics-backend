@@ -14,6 +14,7 @@ class Profile(models.Model):
     token = models.CharField(max_length=64)
     name = models.CharField(max_length=64)
     last_updated = models.DateTimeField(null=True, blank=True)
+    webhook_url = models.URLField(blank=True, default="")
     raw_data = models.JSONField()
 
     class Meta:
