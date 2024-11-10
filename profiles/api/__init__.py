@@ -4,7 +4,8 @@ from rest_framework import exceptions, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from profiles.import_utils import ImportError, import_profile
+from data_imports.exceptions import ImportException
+from data_imports.models import MonobankPersonalProvider, Provider
 from profiles.models import Account, Profile
 
 
@@ -18,7 +19,6 @@ class AccountSerializer(serializers.ModelSerializer):
             "credit_limit",
             "type",
             "currency_code",
-            "cashback_type",
             "masked_pan",
             "iban",
             "last_updated",
@@ -36,7 +36,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class ProfileImportDataSerializer(serializers.Serializer):
+class ProfileImportMonobankBasicSerializer(serializers.Serializer):
     token = serializers.CharField(write_only=True, required=True)
 
 
@@ -53,27 +53,24 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-last_updated", "-id")
         )
 
-    @extend_schema(
-        request=ProfileImportDataSerializer,
-        responses={
-            200: ProfileSerializer,
-            429: ErrorResponse429Serializer,
-        },
-    )
-    @action(detail=False, methods=["post"], url_path="import", url_name="import")
-    def import_(self, request):
+    def import_base(
+        self,
+        request,
+        provider: Provider,
+        input_serializer_class: type[serializers.Serializer],
+    ):
         user = request.user
-        serializer = ProfileImportDataSerializer(data=request.data)
+        serializer = input_serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
-            profile = import_profile(user.id, serializer.validated_data["token"])
-        except ImportError as e:
+            profile = provider.import_profile(serializer.validated_data, user.id)
+        except ImportException as e:
             detail = str(e)
             if e.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
-                raise exceptions.Throttled(detail=detail, wait=60)
+                raise exceptions.Throttled(detail=detail)
             if e.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR:
-                raise exceptions.ValidationError({"token": detail})
+                raise exceptions.ValidationError(detail)
             raise exceptions.APIException(detail)
 
         if not user.first_name and not user.last_name:
@@ -83,3 +80,26 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
             user.save()
 
         return Response(ProfileSerializer(profile).data)
+
+    @extend_schema(
+        request=ProfileImportMonobankBasicSerializer,
+        responses={
+            200: ProfileSerializer,
+            429: ErrorResponse429Serializer,
+        },
+    )
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="import/monobank_personal",
+        url_name="import_monobank_personal",
+    )
+    def import_monobank_personal(self, request):
+        try:
+            provider = MonobankPersonalProvider.objects.get(
+                name=MonobankPersonalProvider.provider_name
+            )
+        except MonobankPersonalProvider.DoesNotExist:
+            raise exceptions.NotFound(detail="Provider not found")
+
+        return self.import_base(request, provider, ProfileImportMonobankBasicSerializer)

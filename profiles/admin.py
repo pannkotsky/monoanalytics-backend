@@ -9,7 +9,7 @@ from .models import Account, Jar, Profile
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("mono_id", "user", "name")
+    list_display = ("id_from_provider", "user", "name")
     search_fields = ("name",)
     autocomplete_fields = ("user",)
 
@@ -17,7 +17,7 @@ class ProfileAdmin(admin.ModelAdmin):
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = (
-        "mono_id",
+        "id_from_provider",
         "profile",
         "is_active",
         "type",
@@ -44,7 +44,7 @@ class AccountAdmin(admin.ModelAdmin):
 
 @admin.register(Jar)
 class JarAdmin(admin.ModelAdmin):
-    list_display = ("mono_id", "profile", "title", "balance_", "goal_")
+    list_display = ("id_from_provider", "profile", "title", "balance_", "goal_")
     list_filter = (AutocompleteFilterFactory(_("Profile"), "profile"),)
     search_fields = ("title", "description")
     autocomplete_fields = ("profile",)

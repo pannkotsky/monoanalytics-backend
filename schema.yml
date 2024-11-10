@@ -1601,16 +1601,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/Profile'
           description: ''
-  /profiles/import/:
+  /profiles/import/monobank_personal/:
     post:
-      operationId: profilesImportCreate
+      operationId: profilesImportMonobankPersonalCreate
       tags:
       - profiles
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProfileImportData'
+              $ref: '#/components/schemas/ProfileImportMonobankBasic'
         required: true
       security:
       - cookieAuth: []
@@ -1620,7 +1620,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProfilesImportCreateErrorResponse400'
+                $ref: '#/components/schemas/ProfilesImportMonobankPersonalCreateErrorResponse400'
           description: ''
         '401':
           content:
@@ -1765,18 +1765,11 @@ components:
           type: integer
           readOnly: true
         type:
-          allOf:
-          - $ref: '#/components/schemas/AccountTypeEnum'
+          type: string
           readOnly: true
         currencyCode:
           type: integer
           readOnly: true
-        cashbackType:
-          readOnly: true
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/CashbackTypeEnum'
-          - $ref: '#/components/schemas/NullEnum'
         maskedPan:
           type: string
           readOnly: true
@@ -1787,15 +1780,13 @@ components:
           type: string
           format: date-time
           readOnly: true
-          nullable: true
         statementLastUpdated:
           type: string
           format: date-time
-          readOnly: true
           nullable: true
+          readOnly: true
       required:
       - balance
-      - cashbackType
       - creditLimit
       - currencyCode
       - iban
@@ -1805,34 +1796,6 @@ components:
       - maskedPan
       - statementLastUpdated
       - type
-    AccountTypeEnum:
-      enum:
-      - black
-      - white
-      - platinum
-      - iron
-      - fop
-      - yellow
-      - eAid
-      - madeInUkraine
-      type: string
-      description: |-
-        * `black` - Black
-        * `white` - White
-        * `platinum` - Platinum
-        * `iron` - Iron
-        * `fop` - Private Entrepreneur
-        * `yellow` - Yellow
-        * `eAid` - e-Aid
-        * `madeInUkraine` - Made in Ukraine
-    CashbackTypeEnum:
-      enum:
-      - UAH
-      - Miles
-      type: string
-      description: |-
-        * `UAH` - UAH
-        * `Miles` - Miles
     ClientErrorEnum:
       enum:
       - client_error
@@ -3271,9 +3234,6 @@ components:
           type: string
       required:
       - password
-    NullEnum:
-      enum:
-      - null
     PaginatedProfileList:
       type: object
       required:
@@ -3405,7 +3365,6 @@ components:
           type: string
           format: date-time
           readOnly: true
-          nullable: true
         accounts:
           type: array
           items:
@@ -3416,7 +3375,7 @@ components:
       - id
       - lastUpdated
       - name
-    ProfileImportData:
+    ProfileImportMonobankBasic:
       type: object
       properties:
         token:
@@ -3424,25 +3383,25 @@ components:
           writeOnly: true
       required:
       - token
-    ProfilesImportCreateError:
+    ProfilesImportMonobankPersonalCreateError:
       oneOf:
-      - $ref: '#/components/schemas/ProfilesImportCreateNonFieldErrorsErrorComponent'
-      - $ref: '#/components/schemas/ProfilesImportCreateTokenErrorComponent'
+      - $ref: '#/components/schemas/ProfilesImportMonobankPersonalCreateNonFieldErrorsErrorComponent'
+      - $ref: '#/components/schemas/ProfilesImportMonobankPersonalCreateTokenErrorComponent'
       discriminator:
         propertyName: attr
         mapping:
-          nonFieldErrors: '#/components/schemas/ProfilesImportCreateNonFieldErrorsErrorComponent'
-          token: '#/components/schemas/ProfilesImportCreateTokenErrorComponent'
-    ProfilesImportCreateErrorResponse400:
+          nonFieldErrors: '#/components/schemas/ProfilesImportMonobankPersonalCreateNonFieldErrorsErrorComponent'
+          token: '#/components/schemas/ProfilesImportMonobankPersonalCreateTokenErrorComponent'
+    ProfilesImportMonobankPersonalCreateErrorResponse400:
       oneOf:
-      - $ref: '#/components/schemas/ProfilesImportCreateValidationError'
+      - $ref: '#/components/schemas/ProfilesImportMonobankPersonalCreateValidationError'
       - $ref: '#/components/schemas/ParseErrorResponse'
       discriminator:
         propertyName: type
         mapping:
-          validation_error: '#/components/schemas/ProfilesImportCreateValidationError'
+          validation_error: '#/components/schemas/ProfilesImportMonobankPersonalCreateValidationError'
           client_error: '#/components/schemas/ParseErrorResponse'
-    ProfilesImportCreateNonFieldErrorsErrorComponent:
+    ProfilesImportMonobankPersonalCreateNonFieldErrorsErrorComponent:
       type: object
       properties:
         attr:
@@ -3464,7 +3423,7 @@ components:
       - attr
       - code
       - detail
-    ProfilesImportCreateTokenErrorComponent:
+    ProfilesImportMonobankPersonalCreateTokenErrorComponent:
       type: object
       properties:
         attr:
@@ -3494,7 +3453,7 @@ components:
       - attr
       - code
       - detail
-    ProfilesImportCreateValidationError:
+    ProfilesImportMonobankPersonalCreateValidationError:
       type: object
       properties:
         type:
@@ -3502,7 +3461,7 @@ components:
         errors:
           type: array
           items:
-            $ref: '#/components/schemas/ProfilesImportCreateError'
+            $ref: '#/components/schemas/ProfilesImportMonobankPersonalCreateError'
       required:
       - errors
       - type

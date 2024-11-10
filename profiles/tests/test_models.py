@@ -10,17 +10,11 @@ class ProfileModelTestCase(TestCase):
         self.assertEqual(profile.name, "Test Name")
         self.assertEqual(profile.raw_data, {})
 
-    def test_unique_mono_id(self):
+    def test_unique_id_from_provider(self):
         user1 = UserFactory()
         profile1 = ProfileFactory(user=user1)
         with self.assertRaises(DatabaseError):
-            ProfileFactory(user=user1, mono_id=profile1.mono_id)
-
-    def test_unique_token(self):
-        user1 = UserFactory()
-        profile1 = ProfileFactory(user=user1)
-        with self.assertRaises(DatabaseError):
-            ProfileFactory(user=user1, token=profile1.token)
+            ProfileFactory(user=user1, id_from_provider=profile1.id_from_provider)
 
     def test_unique_name(self):
         user1 = UserFactory()
@@ -34,7 +28,6 @@ class ProfileModelTestCase(TestCase):
         user2 = UserFactory()
         ProfileFactory(
             user=user2,
-            mono_id=profile1.mono_id,
-            token=profile1.token,
+            id_from_provider=profile1.id_from_provider,
             name=profile1.name,
         )

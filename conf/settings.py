@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "rangefilter",
     "django_extensions",
     # my apps
+    "data_imports",
     "profiles",
     "statement",
     "users",
