@@ -74,7 +74,7 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
             if e.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
                 raise exceptions.Throttled(detail=detail)
             if e.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR:
-                raise exceptions.ValidationError(detail)
+                raise exceptions.ValidationError({"non_field_errors": detail})
             raise exceptions.APIException(detail)
 
         if not user.first_name and not user.last_name:
