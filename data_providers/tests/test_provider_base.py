@@ -29,8 +29,8 @@ test_jar_data = {
 }
 
 
-class TestingProvider(ProviderBase):
-    name = "testing_provider"
+class MockProvider(ProviderBase):
+    name = "mock_provider"
 
     def profile_adapter(self, data: dict):
         return Profile(**data, raw_data=data)
@@ -60,7 +60,7 @@ class TestingProvider(ProviderBase):
 class TestProviderBase(TestCase):
     def setUp(self):
         self.user = UserFactory()
-        self.provider = TestingProvider()
+        self.provider = MockProvider()
 
     def test_import_profile(self):
         profile = self.provider.import_profile(test_profile_data, user_id=self.user.id)
