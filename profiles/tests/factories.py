@@ -8,8 +8,8 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Profile
 
+    provider_name = "monobank_personal"
     user = factory.SubFactory(UserFactory)
     name = factory.Sequence(lambda n: f"Profile {n}")
-    mono_id = factory.Faker("uuid4")
-    token = factory.Faker("uuid4")
+    id_from_provider = factory.Faker("uuid4")
     raw_data = {}

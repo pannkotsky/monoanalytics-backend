@@ -26,7 +26,7 @@ class Tag(models.Model):
 
 
 class StatementItem(models.Model):
-    mono_id = models.CharField(max_length=64)
+    id_from_provider = models.CharField(max_length=64)
     account = models.ForeignKey(
         Account, on_delete=models.CASCADE, related_name="statement_items"
     )
@@ -38,7 +38,7 @@ class StatementItem(models.Model):
         on_delete=models.SET_NULL,
         related_name="statement_items",
     )
-    hold = models.BooleanField()
+    hold = models.BooleanField(default=False)
     amount_in_account_currency = models.IntegerField()
     amount_in_operation_currency = models.IntegerField()
     currency_code = models.IntegerField(validators=[MaxValueValidator(999)])
@@ -50,6 +50,13 @@ class StatementItem(models.Model):
     tags = models.ManyToManyField(Tag, related_name="statement_items")
 
     objects = StatementItemQuerySet.as_manager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["id_from_provider", "account"], name="unique_statement_item"
+            )
+        ]
 
     def __str__(self):
         return f"{self.time} {self.description}"

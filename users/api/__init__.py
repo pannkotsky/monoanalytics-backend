@@ -3,25 +3,9 @@ from django.utils.translation import gettext_lazy as _
 from dj_rest_auth.registration.serializers import (
     RegisterSerializer as DjRestAuthRegisterSerializer,
 )
-from rest_framework import generics, serializers
+from rest_framework import serializers
 
 from users.models import User
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "email", "first_name", "last_name"]
-
-
-class UserView(generics.RetrieveAPIView):
-    serializer_class = UserSerializer
-
-    def get_queryset(self):
-        return User.objects.filter(id=self.request.user.id)
-
-    def get_object(self):
-        return self.request.user
 
 
 class RegisterSerializer(DjRestAuthRegisterSerializer):

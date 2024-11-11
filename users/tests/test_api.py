@@ -9,15 +9,15 @@ from users.tests.factories import UserFactory
 
 class UserApiTestCase(APITestCase):
     def test_requires_authentication(self):
-        response = self.client.get(reverse("api:user"))
+        response = self.client.get(reverse("api:rest_user_details"))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_returns_current_user(self):
         user = UserFactory()
         self.client.force_authenticate(user=user)
-        response = self.client.get(reverse("api:user"))
+        response = self.client.get(reverse("api:rest_user_details"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], user.id)
+        self.assertEqual(response.data["pk"], user.id)
 
 
 class LoginApiTestCase(APITestCase):
