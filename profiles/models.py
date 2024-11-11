@@ -11,9 +11,7 @@ class Profile(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profiles"
     )
-    provider = models.ForeignKey(
-        "data_imports.Provider", on_delete=models.CASCADE, related_name="profiles"
-    )
+    provider_name = models.CharField(max_length=64)
     id_from_provider = models.CharField(max_length=64)
     name = models.CharField(max_length=64)
     last_updated = models.DateTimeField(auto_now=True)
@@ -23,7 +21,7 @@ class Profile(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "provider", "id_from_provider"],
+                fields=["user", "provider_name", "id_from_provider"],
                 name="unique_profile_id_from_provider",
             ),
             models.UniqueConstraint(

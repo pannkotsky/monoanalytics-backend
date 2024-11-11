@@ -1,6 +1,5 @@
 import factory
 
-from data_imports.tests.factories import MonobankPersonalProviderFactory
 from profiles.models import Profile
 from users.tests.factories import UserFactory
 
@@ -9,7 +8,7 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Profile
 
-    provider = factory.SubFactory(MonobankPersonalProviderFactory)
+    provider_name = "monobank_personal"
     user = factory.SubFactory(UserFactory)
     name = factory.Sequence(lambda n: f"Profile {n}")
     id_from_provider = factory.Faker("uuid4")

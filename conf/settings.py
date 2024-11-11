@@ -262,3 +262,13 @@ SPECTACULAR_SETTINGS = {
 DRF_STANDARDIZED_ERRORS = {
     "EXCEPTION_FORMATTER_CLASS": "openapi_schema.formatter.ExceptionFormatter",
 }
+
+DATA_PROVIDERS = {
+    "MONOBANK_PERSONAL": {
+        "ENABLED": env("MONOBANK_PERSONAL_ENABLED", default=True, cast=bool),
+    },
+    "MONOBANK_CORPORATE": {
+        "ENABLED": env("MONOBANK_CORPORATE_ENABLED", default=False, cast=bool),
+        "PRIVATE_KEY": env("MONOBANK_CORPORATE_PRIVATE_KEY", default=""),
+    },
+}

@@ -1,13 +1,16 @@
+import abc
 import time
 from datetime import datetime
 from typing import Iterable, TypedDict
 
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 
 import monobank
 
 from data_imports.exceptions import ImportException
-from data_imports.models.provider import ProfileDataWithAccounts, Provider
+from data_providers.provider_base import ProfileDataWithAccounts, ProviderBase
 from profiles.models import Account, Jar, Profile
 from statement.models import StatementItem
 from .types import (
@@ -27,7 +30,16 @@ class CorporateAuthData(TypedDict):
     request_id: str
 
 
-class MonobankProviderBaseMixin:
+class MonobankProviderBase[AuthData](
+    ProviderBase[
+        AuthData,
+        MonobankProfileData,
+        MonobankAccountData,
+        MonobankJarData,
+        MonobankStatementItemData,
+    ],
+    abc.ABC,
+):
     @property
     def rate_limit(self) -> int:
         return 60
@@ -80,11 +92,12 @@ class MonobankProviderBaseMixin:
             raw_data=data,
         )
 
-    def get_client(self, auth_data: dict):
+    @abc.abstractmethod
+    def get_client(self, auth_data: AuthData):
         raise NotImplementedError
 
     def fetch_profile_data(
-        self, auth_data: dict
+        self, auth_data: AuthData
     ) -> ProfileDataWithAccounts[
         MonobankProfileData, MonobankAccountData, MonobankJarData
     ]:
@@ -126,7 +139,7 @@ class MonobankProviderBaseMixin:
 
     def fetch_statement_items_data(
         self,
-        auth_data: dict,
+        auth_data: AuthData,
         account: Account,
         from_date: datetime,
         to_date: datetime,
@@ -146,21 +159,24 @@ class MonobankProviderBaseMixin:
             time.sleep(self.rate_limit)
 
 
-class MonobankPersonalProvider(MonobankProviderBaseMixin, Provider):
+class MonobankPersonalProvider(MonobankProviderBase[PersonalAuthData]):
     class Meta:
         proxy = True
 
-    provider_name = "monobank_personal"
+    name = "monobank_personal"
 
     def get_client(self, auth_data: PersonalAuthData):
         return monobank.Client(auth_data["token"])
 
 
-class MonobankCorporateProvider(MonobankProviderBaseMixin, Provider):
+class MonobankCorporateProvider(MonobankProviderBase[CorporateAuthData]):
     class Meta:
         proxy = True
 
-    provider_name = "monobank_corporate"
+    name = "monobank_corporate"
 
     def get_client(self, auth_data: CorporateAuthData):
-        return monobank.CorporateClient(auth_data["request_id"], self.private_key)
+        private_key = settings.DATA_PROVIDERS["MONOBANK_CORPORATE"]["PRIVATE_KEY"]
+        if not private_key:
+            raise ImproperlyConfigured("MONOBANK_CORPORATE_PRIVATE_KEY is not set")
+        return monobank.CorporateClient(auth_data["request_id"], private_key)

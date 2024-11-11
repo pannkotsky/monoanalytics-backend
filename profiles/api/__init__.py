@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from drf_spectacular.utils import extend_schema
 from drf_standardized_errors.openapi_serializers import ErrorResponse429Serializer
 from rest_framework import exceptions, serializers, status, viewsets
@@ -5,7 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from data_imports.exceptions import ImportException
-from data_imports.models import MonobankPersonalProvider, Provider
+from data_providers.monobank import MonobankPersonalProvider
+from data_providers.provider_base import ProviderBase
 from profiles.models import Account, Profile
 
 
@@ -56,7 +59,7 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
     def import_base(
         self,
         request,
-        provider: Provider,
+        provider: ProviderBase,
         input_serializer_class: type[serializers.Serializer],
     ):
         user = request.user
@@ -95,11 +98,8 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
         url_name="import_monobank_personal",
     )
     def import_monobank_personal(self, request):
-        try:
-            provider = MonobankPersonalProvider.objects.get(
-                name=MonobankPersonalProvider.provider_name
-            )
-        except MonobankPersonalProvider.DoesNotExist:
+        if not settings.DATA_PROVIDERS["MONOBANK_PERSONAL"]["ENABLED"]:
             raise exceptions.NotFound(detail="Provider not found")
-
-        return self.import_base(request, provider, ProfileImportMonobankBasicSerializer)
+        return self.import_base(
+            request, MonobankPersonalProvider(), ProfileImportMonobankBasicSerializer
+        )

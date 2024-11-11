@@ -1,75 +1,63 @@
+import abc
 from datetime import datetime
-from typing import Generic, Iterable, TypedDict, TypeVar
+from typing import Iterable, TypedDict
 
-from django.db import models, transaction
+from django.db import transaction
 from django.utils import timezone
 
+from data_imports.models.statement_import import StatementImport
 from profiles.models import Account, Jar, Profile
 from statement.models import StatementItem
-from .statement_import import StatementImport
-
-ProfileData = TypeVar("ProfileData")
-AccountData = TypeVar("AccountData")
-JarData = TypeVar("JarData")
 
 
-class ProfileDataWithAccounts(
-    Generic[ProfileData, AccountData, JarData],
-    TypedDict,
-):
+class ProfileDataWithAccounts[ProfileData, AccountData, JarData](TypedDict):
     profile: ProfileData
     accounts: list[AccountData]
     jars: list[JarData]
 
 
-class Provider(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    private_key = models.CharField(max_length=255, blank=True, default="")
+class ProviderBase[AuthData, ProfileData, AccountData, JarData, StatementItemData](
+    abc.ABC
+):
+    name = ""
 
-    AuthData = TypeVar("AuthData")
-    ProfileData = TypeVar("ProfileData")
-    AccountData = TypeVar("AccountData")
-    JarData = TypeVar("JarData")
-    StatementItemData = TypeVar("StatementItemData")
+    def __init__(self):
+        assert self.name, "Provider name is not set"
 
-    def profile_adapter(self, data: "Provider.ProfileData") -> Profile:
+    def profile_adapter(self, data: ProfileData) -> Profile:
         """
         Adapts data from provider to Profile model instance (unsaved)
         """
         raise NotImplementedError
 
-    def account_adapter(self, data: "Provider.AccountData") -> Account:
+    def account_adapter(self, data: AccountData) -> Account:
         """
         Adapts data from provider to Account model instance (unsaved)
         """
         raise NotImplementedError
 
-    def jar_adapter(self, data: "Provider.JarData") -> Jar:
+    def jar_adapter(self, data: JarData) -> Jar:
         """
         Adapts data from provider to Jar model instance (unsaved)
         """
         raise NotImplementedError
 
-    def statement_item_adapter(
-        self, data: "Provider.StatementItemData"
-    ) -> StatementItem:
+    def statement_item_adapter(self, data: StatementItemData) -> StatementItem:
         """
         Adapts data from provider to StatementItem model instance (unsaved)
         """
         raise NotImplementedError
 
     def fetch_profile_data(
-        self, auth_data: "Provider.AuthData"
-    ) -> ProfileDataWithAccounts[
-        "Provider.ProfileData", "Provider.AccountData", "Provider.JarData"
-    ]:
+        self, auth_data: AuthData
+    ) -> ProfileDataWithAccounts[ProfileData, AccountData, JarData]:
         """
         Fetches profile data from provider
         """
         raise NotImplementedError
 
     @transaction.atomic
-    def import_profile(self, auth_data: "Provider.AuthData", user_id: int) -> Profile:
+    def import_profile(self, auth_data: AuthData, user_id: int) -> Profile:
         """
         Fetches profile data from provider and imports it into the database
         """
@@ -80,14 +68,17 @@ class Provider(models.Model):
 
         profile = self.profile_adapter(profile_data)
         existing_profile = Profile.objects.filter(
-            id_from_provider=profile.id_from_provider, user_id=user_id
+            provider_name=self.name,
+            id_from_provider=profile.id_from_provider,
+            user_id=user_id,
         ).first()
         if existing_profile:
             for field in Profile._meta.concrete_fields:
-                if field.name not in ("id_from_provider", "user"):
+                if field.name not in ("provider_name", "id_from_provider", "user"):
                     setattr(existing_profile, field.name, getattr(profile, field.name))
             existing_profile.save()
         else:
+            profile.provider_name = self.name
             profile.user_id = user_id
             profile.save()
 
@@ -127,11 +118,11 @@ class Provider(models.Model):
 
     def fetch_statement_items_data(
         self,
-        auth_data: "Provider.AuthData",
+        auth_data: AuthData,
         account: Account,
         from_date: datetime,
         to_date: datetime,
-    ) -> Iterable["Provider.StatementItemData"]:
+    ) -> Iterable[StatementItemData]:
         """
         Fetches statement items data from provider
         """
@@ -139,7 +130,7 @@ class Provider(models.Model):
 
     def import_statement_items(
         self,
-        auth_data: "Provider.AuthData",
+        auth_data: AuthData,
         account: Account,
         from_date: datetime,
         to_date: datetime | None = None,
@@ -147,6 +138,8 @@ class Provider(models.Model):
         """
         Fetches statement items from provider and imports them into the database
         """
+
+        # TODO: move it to Celery task to return import id immediately for tracking
         statement_import = StatementImport.objects.create(account=account)
 
         to_date = to_date or timezone.localtime()

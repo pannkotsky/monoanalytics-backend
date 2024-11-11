@@ -9,8 +9,8 @@ from .models import Account, Jar, Profile
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("id_from_provider", "user", "name")
-    search_fields = ("name",)
+    list_display = ("provider_name", "id_from_provider", "user", "name")
+    search_fields = ("name", "provider_name")
     autocomplete_fields = ("user",)
 
 
