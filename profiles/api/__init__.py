@@ -95,7 +95,7 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=False,
         methods=["post"],
-        url_path="import/monobank_personal",
+        url_path="import/monobank-personal",
         url_name="import-monobank-personal",
         permission_classes=[IsAuthenticated],
     )

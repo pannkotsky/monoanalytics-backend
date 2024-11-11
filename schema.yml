@@ -1601,7 +1601,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Profile'
           description: ''
-  /profiles/import/monobank_personal/:
+  /profiles/import/monobank-personal/:
     post:
       operationId: profilesImportMonobankPersonalCreate
       tags:
@@ -1641,20 +1641,6 @@ paths:
                     errors:
                     - code: not_authenticated
                       detail: Authentication credentials were not provided.
-                      attr: null
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse403'
-              examples:
-                PermissionDenied:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: permission_denied
-                      detail: You do not have permission to perform this action.
                       attr: null
           description: ''
         '404':
