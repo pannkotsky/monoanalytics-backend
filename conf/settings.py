@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-import secrets
 from pathlib import Path
 
 import environ
@@ -30,7 +29,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
-    default=secrets.token_urlsafe(64),
+    default="u59j3Aa5W9rz-YR_50Nzqo8c5EnPOWmZfdDYyCQTzbhrAr7Avc2_0Z0UJecEQ91crPyiJOyr0loiQluBbRcCLQ",
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!

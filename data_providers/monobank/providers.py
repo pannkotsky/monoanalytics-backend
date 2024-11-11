@@ -105,7 +105,7 @@ class MonobankProviderBase[AuthData](
         try:
             client_info: MonobankRawProfileData = client.get_client_info()
         except monobank.Error as e:
-            raise ImportException(e.args[0], e.response.status_code) from e
+            raise ImportException(e.args[0], e.response.status_code)
         return {
             "profile": {
                 "clientId": client_info["clientId"],

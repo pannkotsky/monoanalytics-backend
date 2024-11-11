@@ -4,6 +4,7 @@ from drf_spectacular.utils import extend_schema
 from drf_standardized_errors.openapi_serializers import ErrorResponse429Serializer
 from rest_framework import exceptions, serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from data_imports.exceptions import ImportException
@@ -95,7 +96,8 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
         methods=["post"],
         url_path="import/monobank_personal",
-        url_name="import_monobank_personal",
+        url_name="import-monobank-personal",
+        permission_classes=[IsAuthenticated],
     )
     def import_monobank_personal(self, request):
         if not settings.DATA_PROVIDERS["MONOBANK_PERSONAL"]["ENABLED"]:
