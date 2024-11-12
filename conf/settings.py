@@ -188,6 +188,28 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
+
+
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissions"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
